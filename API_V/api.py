@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import joblib
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
 from textPreprocessor import TextPreprocessor
 
 # Cargar el pipeline entrenado
@@ -54,53 +55,7 @@ def predict_ui():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-
-# Endpoint 2: Reentrenamiento del modelo
-@app.route('/retrain', methods=['POST'])
-def retrain():
-    # Cargar los datos enviados en la solicitud
-    data = request.get_json()  # Recibir los datos en formato JSON
-    df_nuevos_datos = pd.DataFrame(data)  # Convertir los datos a DataFrame
-
-    # Asegurarse de que las columnas requeridas estén en los datos
-    if 'Textos_espanol' not in df_nuevos_datos.columns or 'sdg' not in df_nuevos_datos.columns:
-        return jsonify({"error": "Faltan las columnas 'Textos_espanol' y/o 'sdg'"}), 400
-
-    try:
-        # Intentar cargar los datos existentes almacenados en el archivo Excel
-        datos_existentes = pd.read_excel('API_V/ODScat_345.xlsx')
-    except FileNotFoundError:
-        # Si no existe el archivo, crear uno nuevo con los datos recibidos
-        datos_existentes = pd.DataFrame(columns=['Textos_espanol', 'sdg'])
-
-    # Combinar los datos nuevos con los existentes
-    datos_completos = pd.concat([datos_existentes, df_nuevos_datos], ignore_index=True)
-
-    # Guardar los datos combinados en el archivo Excel (sobrescribir el archivo con los datos actualizados)
-    datos_completos.to_excel('API_V/ODScat_345.xlsx', index=False)
-
-    # Separar las características y las etiquetas
-    X_data = datos_completos['Textos_espanol']
-    y_data = datos_completos['sdg']
-
-    # Reentrenar el modelo con el conjunto completo de datos (antiguos + nuevos)
-    pipeline.fit(X_data, y_data)
-
-    # Evaluar el modelo con el conjunto completo de datos
-    y_pred = pipeline.predict(X_data)
-    rmse = mean_squared_error(y_data, y_pred, squared=False)
-    mae = mean_absolute_error(y_data, y_pred)
-    r2 = r2_score(y_data, y_pred)
-
-    # Guardar el modelo reentrenado
-    joblib.dump(pipeline, 'pipeline.joblib')
-
-    # Devolver las métricas de desempeño del reentrenamiento
-    return jsonify({"rmse": rmse, "mae": mae, "r2": r2})
-
-#ENdpoint 1: Predicción con probabilidades para archivos
+# Endpoint 1: Predicción con probabilidades para archivos
 @app.route('/predict_xlsx', methods=['POST'])
 def predict_xlsx():
     try:
@@ -143,6 +98,61 @@ def predict_xlsx():
 
         # Renderizar la página result_archivo.html con las predicciones y probabilidades
         return render_template('result_archivo.html', predictions=results, textos=df['Textos_espanol'])
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Endpoint 2: Reentrenamiento del modelo
+@app.route('/retrain', methods=['POST'])
+def retrain():
+    try:
+        # Obtener el archivo subido
+        file = request.files['file']
+        
+        # Leer el archivo (puede ser CSV o XLSX)
+        if file.filename.endswith('.csv'):
+            df_nuevos_datos = pd.read_csv(file)
+        elif file.filename.endswith('.xlsx'):
+            df_nuevos_datos = pd.read_excel(file)
+        else:
+            return "Formato no soportado", 400
+
+        # Verificar que el archivo contiene las columnas adecuadas
+        if 'Textos_espanol' not in df_nuevos_datos.columns or 'sdg' not in df_nuevos_datos.columns:
+            return jsonify({"error": "Faltan las columnas 'Textos_espanol' y/o 'sdg'"}), 400
+
+        # Intentar cargar los datos existentes almacenados en el archivo Excel
+        try:
+            datos_existentes = pd.read_excel('API_V/ODScat_345.xlsx')
+        except FileNotFoundError:
+            # Si no existe el archivo, crear uno nuevo con los datos recibidos
+            datos_existentes = pd.DataFrame(columns=['Textos_espanol', 'sdg'])
+
+        # Combinar los datos nuevos con los existentes
+        datos_completos = pd.concat([datos_existentes, df_nuevos_datos], ignore_index=True)
+
+        # Guardar los datos combinados en el archivo Excel
+        datos_completos.to_excel('API_V/ODScat_345.xlsx', index=False)
+
+        # Separar las características y etiquetas
+        X_data = datos_completos['Textos_espanol']
+        y_data = datos_completos['sdg']
+
+        # Reentrenar el modelo
+        pipeline.fit(X_data, y_data)
+
+        # Evaluar el modelo
+        y_pred = pipeline.predict(X_data)
+        accuracy = accuracy_score(y_data, y_pred)
+        precision = precision_score(y_data, y_pred, average='weighted')
+        recall = recall_score(y_data, y_pred, average='weighted')
+        f1 = f1_score(y_data, y_pred, average='weighted')
+
+        # Guardar el modelo reentrenado
+        joblib.dump(pipeline, 'pipeline.joblib')
+
+        # Renderizar la plantilla con las métricas
+        return render_template('result_retrain.html', accuracy=accuracy, precision=precision, recall=recall, f1_score=f1)
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
