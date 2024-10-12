@@ -17,18 +17,28 @@
           <tr>
             <th>Texto</th>
             <th>Predicción</th>
+            <th>Probabilidades</th>
           </tr>
         </thead>
         <tbody>
-          {% if textos %} {% for i in range(textos|length) %}
-          <tr>
-            <td>{{ textos[i] }}</td>
-            <td>{{ predictions[i] }}</td>
-          </tr>
-          {% endfor %} {% else %}
-          <tr>
-            <td colspan="2">No hay opiniones para mostrar.</td>
-          </tr>
+          {% if textos %} 
+            {% for i in range(textos|length) %}
+              <tr>
+                <td>{{ textos[i] }}</td>
+                <td>{{ predictions[i].prediction }}</td>
+                <td>
+                  <ul>
+                    {% for prob in predictions[i].probabilities %}
+                      <li>{{ prob }}</li>
+                    {% endfor %}
+                  </ul>
+                </td>
+              </tr>
+            {% endfor %} 
+          {% else %}
+            <tr>
+              <td colspan="3">No hay opiniones para mostrar.</td>
+            </tr>
           {% endif %}
         </tbody>
       </table>

@@ -15,7 +15,7 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-# Endpoint 1: Predicción
+# Endpoint 1: Predicción con probabilidades
 @app.route('/predict_ui', methods=['POST'])
 def predict_ui():
     try:
@@ -26,15 +26,34 @@ def predict_ui():
         # Crear un DataFrame con los textos
         df = pd.DataFrame({"Textos_espanol": textos})
 
-        # Realizar predicciones
+        # Realizar predicciones usando la columna 'Textos_espanol'
         predictions = pipeline.predict(df['Textos_espanol'])
 
-        # Renderizar la página con las predicciones
-        return render_template('result.html', predictions=predictions)
+        # Asegurarse de que el modelo soporte 'predict_proba'
+        if hasattr(pipeline, 'predict_proba'):
+            probabilities = pipeline.predict_proba(df['Textos_espanol'])
+        else:
+            return jsonify({"error": "El modelo no soporta predict_proba"}), 400
+
+        # Asignar los SDG correspondientes a las probabilidades
+        sdg_labels = [3, 4, 5]
+        results = []
+        for i in range(len(predictions)):
+            prob_with_labels = [{"sdg": sdg_labels[j], "probability": probabilities[i][j]} for j in range(len(sdg_labels))]
+            results.append({
+                "text": textos[i],  # Agregar el texto original
+                "prediction": predictions[i],
+                "probabilities": prob_with_labels  # Probabilidades con los SDG asociados
+            })
+
+        # Renderizar la página con las predicciones y probabilidades
+        return render_template('result.html', predictions=results)
+
     except KeyError as e:
         return f"Error: no se encontró la clave {e.args[0]} en el formulario", 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 

@@ -20,6 +20,10 @@
         .list-group-item {
             background-color: #ffffff;
         }
+        .highlight {
+            font-weight: bold;
+            color: #007bff; /* Color azul para resaltar */
+        }
     </style>
 </head>
 <body>
@@ -28,8 +32,19 @@
             <div class="card-body">
                 <h2 class="text-center">Resultados de la Predicción</h2>
                 <ul class="list-group">
-                    {% for prediction in predictions %}
-                        <li class="list-group-item">Predicción: {{ prediction }}</li>
+                    {% for result in predictions %}
+                        <li class="list-group-item">
+                            <strong>Texto:</strong> {{ result.text }}<br>
+                            <strong>Predicción:</strong> {{ result.prediction }}<br>
+                            <strong>Probabilidades:</strong> 
+                            <ul>
+                                {% for prob in result.probabilities %}
+                                    <li class="{% if prob.sdg == result.prediction %}highlight{% endif %}">
+                                        SDG {{ prob.sdg }}: {{ (prob.probability * 100)|round(2) }}%
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </li>
                     {% endfor %}
                 </ul>
                 <a href="/" class="btn btn-primary mt-3 btn-block">Volver</a>
