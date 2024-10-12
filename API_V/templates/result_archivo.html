@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <title>Predicciones de Opiniones</title>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Predicciones de Opiniones desde el Archivo</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Texto</th>
+            <th>Predicción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if textos %} {% for i in range(textos|length) %}
+          <tr>
+            <td>{{ textos[i] }}</td>
+            <td>{{ predictions[i] }}</td>
+          </tr>
+          {% endfor %} {% else %}
+          <tr>
+            <td colspan="2">No hay opiniones para mostrar.</td>
+          </tr>
+          {% endif %}
+        </tbody>
+      </table>
+      <a href="/" class="btn btn-primary">Regresar</a>
+    </div>
+  </body>
+</html>

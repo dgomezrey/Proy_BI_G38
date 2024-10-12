@@ -1,32 +1,41 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import joblib
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from textPreprocessor import TextPreprocessor
 
 # Cargar el pipeline entrenado
-pipeline = joblib.load('API_V/pipeline.joblib')
+pipeline = joblib.load('./pipeline.joblib')
 
 # Crear la app Flask
 app = Flask(__name__)
 
+# Página principal con el formulario para la interfaz
+@app.route('/')
+def home():
+    return render_template('index.html')
+
 # Endpoint 1: Predicción
-@app.route('/predict', methods=['POST'])
-def predict():
-    data = request.get_json()  # Recibir los datos en formato JSON
-    df = pd.DataFrame(data)  # Convertir los datos a DataFrame
-
-    # Asegurarse de que la estructura sea correcta
-    if 'Textos_espanol' not in df.columns:
-        return jsonify({"error": "La columna 'Textos_espanol' no está en los datos"}), 400
-
+@app.route('/predict_ui', methods=['POST'])
+def predict_ui():
     try:
+        # Recibir los textos ingresados en la interfaz
+        text = request.form['text']
+        textos = [t.strip() for t in text.split(',')]  # Convertir el texto en una lista
+
+        # Crear un DataFrame con los textos
+        df = pd.DataFrame({"Textos_espanol": textos})
+
         # Realizar predicciones
         predictions = pipeline.predict(df['Textos_espanol'])
-        # Devolver las predicciones en el mismo orden
-        return jsonify(predictions.tolist())
+
+        # Renderizar la página con las predicciones
+        return render_template('result.html', predictions=predictions)
+    except KeyError as e:
+        return f"Error: no se encontró la clave {e.args[0]} en el formulario", 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 # Endpoint 2: Reentrenamiento del modelo
@@ -71,6 +80,41 @@ def retrain():
 
     # Devolver las métricas de desempeño del reentrenamiento
     return jsonify({"rmse": rmse, "mae": mae, "r2": r2})
+
+@app.route('/predict_xlsx', methods=['POST'])
+def predict_xlsx():
+    if 'file' not in request.files:
+        return jsonify({"error": "No se ha subido ningún archivo"}), 400
+    
+    file = request.files['file']
+
+    # Verificar que el archivo sea XLSX
+    if file.filename == '' or not file.filename.endswith('.xlsx'):
+        return jsonify({"error": "Por favor sube un archivo XLSX válido"}), 400
+
+    try:
+        # Leer el archivo XLSX
+        df = pd.read_excel(file)
+
+        # Verificar que la columna 'Textos_espanol' exista
+        if 'Textos_espanol' not in df.columns:
+            return jsonify({"error": "El archivo XLSX debe contener una columna 'Textos_espanol'"}), 400
+        
+        # Obtener los textos a clasificar
+        textos = df['Textos_espanol'].tolist()
+
+        # Crear un DataFrame con los textos
+        df_textos = pd.DataFrame({"Textos_espanol": textos})
+
+        # Realizar predicciones
+        predictions = pipeline.predict(df_textos['Textos_espanol']).tolist()  # Convertir a lista
+
+        # Renderizar la nueva plantilla con textos y sus predicciones
+        return render_template('result_archivo.html', textos=textos, predictions=predictions)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 
 
 # Ejecutar la app

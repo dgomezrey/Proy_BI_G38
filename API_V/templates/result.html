@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados de Predicción</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-top: 50px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #000000;
+        }
+        .list-group-item {
+            background-color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="text-center">Resultados de la Predicción</h2>
+                <ul class="list-group">
+                    {% for prediction in predictions %}
+                        <li class="list-group-item">Predicción: {{ prediction }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="/" class="btn btn-primary mt-3 btn-block">Volver</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

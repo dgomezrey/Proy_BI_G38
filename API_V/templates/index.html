@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de SDG</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-top: 50px;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-top: 20px;
+        }
+        h2 {
+            color: #007bff;
+            text-align: center;
+        }
+        p {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Proyecto Analítica de Textos: Fondo de Poblaciones de las Naciones Unidas</h1>
+        <div class="card">
+            <div class="card-body">
+                <h2>Clasificación de Opiniones</h2>
+                <p>En esta página web puedes clasificar opiniones mediante el uso de un modelo de Naive Bayes.</p>
+                <form action="/predict_ui" method="post">
+                    <div class="form-group">
+                        <textarea class="form-control" id="textInput" name="text" rows="4" placeholder="Escribe aquí tu texto..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Predecir</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h2>Clasificación desde Archivo XLSX</h2>
+                <p>Sube un archivo xlsx para clasificar múltiples opiniones.</p>
+                <form action="/predict_xlsx" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <input type="file" class="form-control-file" id="csvFile" name="file" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Predecir archivo</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
