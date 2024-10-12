@@ -116,7 +116,6 @@ def predict_xlsx():
 
 
 
-
 # Ejecutar la app
 if __name__ == '__main__':
     app.run(debug=True)
