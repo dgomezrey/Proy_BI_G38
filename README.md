@@ -8,16 +8,10 @@
 
 ## 1. Instalar Dependencias
 
-Asegúrate de que todas las dependencias necesarias estén instaladas para que la aplicación funcione correctamente. En especial, verifica la versión de `scikit-learn` usando el siguiente comando:
+Asegúrate de que todas las dependencias necesarias estén instaladas para que la aplicación funcione correctamente. Instala todas con el siguiente comando.
 
 ```bash
-pip show scikit-learn
-```
-
-La versión requerida es **1.5.2**. Si no tienes esta versión, actualízala con:
-
-```bash
-pip install scikit-learn==1.5.2
+pip install -r requirements.txt
 ```
 
 ## 2. Ejecutar la API
@@ -28,12 +22,18 @@ Una vez que tengas todas las dependencias listas, navega a la carpeta `API_V` y 
 python api.py
 ```
 
+o 
+
+```bash
+python3 api.py
+```
+
 ## 3. Acceder a la API
 
 Después de ejecutar el archivo, abre tu navegador y accede a la siguiente dirección:
 
 ```
-http://127.0.0.1:5000
+http://localhost:5000
 ```
 
 Esto te permitirá interactuar con la API desde el navegador.
