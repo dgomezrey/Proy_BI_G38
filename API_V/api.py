@@ -100,38 +100,54 @@ def retrain():
     # Devolver las métricas de desempeño del reentrenamiento
     return jsonify({"rmse": rmse, "mae": mae, "r2": r2})
 
+#ENdpoint 1: Predicción con probabilidades para archivos
 @app.route('/predict_xlsx', methods=['POST'])
 def predict_xlsx():
-    if 'file' not in request.files:
-        return jsonify({"error": "No se ha subido ningún archivo"}), 400
-    
-    file = request.files['file']
-
-    # Verificar que el archivo sea XLSX
-    if file.filename == '' or not file.filename.endswith('.xlsx'):
-        return jsonify({"error": "Por favor sube un archivo XLSX válido"}), 400
-
     try:
-        # Leer el archivo XLSX
-        df = pd.read_excel(file)
+        # Obtener el archivo subido
+        file = request.files['file']
+        
+        # Leer el archivo (puede ser CSV o XLSX)
+        if file.filename.endswith('.csv'):
+            df = pd.read_csv(file)
+        elif file.filename.endswith('.xlsx'):
+            df = pd.read_excel(file)
+        else:
+            return "Formato no soportado", 400
 
         # Verificar que la columna 'Textos_espanol' exista
         if 'Textos_espanol' not in df.columns:
-            return jsonify({"error": "El archivo XLSX debe contener una columna 'Textos_espanol'"}), 400
-        
-        # Obtener los textos a clasificar
-        textos = df['Textos_espanol'].tolist()
+            return jsonify({"error": "El archivo debe contener una columna 'Textos_espanol'"}), 400
 
-        # Crear un DataFrame con los textos
-        df_textos = pd.DataFrame({"Textos_espanol": textos})
+        # Asegurarse de que 'Textos_espanol' sea un DataFrame antes de usar el pipeline
+        df_textos = pd.DataFrame(df['Textos_espanol'])  # Crear un DataFrame si es necesario
 
-        # Realizar predicciones
-        predictions = pipeline.predict(df_textos['Textos_espanol']).tolist()  # Convertir a lista
+        # Realizar predicciones y calcular probabilidades
+        predictions = pipeline.predict(df_textos['Textos_espanol'])
 
-        # Renderizar la nueva plantilla con textos y sus predicciones
-        return render_template('result_archivo.html', textos=textos, predictions=predictions)
+        if hasattr(pipeline, 'predict_proba'):
+            probabilities = pipeline.predict_proba(df_textos['Textos_espanol'])
+        else:
+            return jsonify({"error": "El modelo no soporta predict_proba"}), 400
+
+        # Asignar los SDG correspondientes a las probabilidades
+        sdg_labels = [3, 4, 5]
+        results = []
+        for i in range(len(predictions)):
+            prob_with_labels = [{"sdg": sdg_labels[j], "probability": probabilities[i][j]} for j in range(len(sdg_labels))]
+            results.append({
+                "text": df['Textos_espanol'].iloc[i],  # El texto original
+                "prediction": predictions[i],
+                "probabilities": prob_with_labels
+            })
+
+        # Renderizar la página result_archivo.html con las predicciones y probabilidades
+        return render_template('result_archivo.html', predictions=results, textos=df['Textos_espanol'])
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
 
 
 
