@@ -19,13 +19,13 @@ pip install -r requirements.txt
 Una vez que tengas todas las dependencias listas, navega a la carpeta `API_V` y ejecuta el archivo `api.py`. Puedes hacerlo con el siguiente comando:
 
 ```bash
-python api.py
+python API_V/api.py
 ```
 
 o 
 
 ```bash
-python3 api.py
+python3 API_V/api.py
 ```
 
 ## 3. Acceder a la API
