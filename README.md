@@ -6,7 +6,12 @@
 
 # Guía de Uso de la Aplicación con la API
 
-## 1. Instalar Dependencias
+## 1. Clonar repositorio
+
+```bash
+git clone https://github.com/dgomezrey/Proy_BI_G38.git
+```
+## 2. Instalar Dependencias
 
 Asegúrate de que todas las dependencias necesarias estén instaladas para que la aplicación funcione correctamente. Instala todas con el siguiente comando.
 
@@ -14,7 +19,7 @@ Asegúrate de que todas las dependencias necesarias estén instaladas para que l
 pip install -r requirements.txt
 ```
 
-## 2. Ejecutar la API
+## 3. Ejecutar la API
 
 Una vez que tengas todas las dependencias listas, navega a la carpeta `API_V` y ejecuta el archivo `api.py`. Puedes hacerlo con el siguiente comando:
 
@@ -28,7 +33,7 @@ o
 python3 API_V/api.py
 ```
 
-## 3. Acceder a la API
+## 4. Acceder a la aplicacion
 
 Después de ejecutar el archivo, abre tu navegador y accede a la siguiente dirección:
 
